@@ -1,0 +1,32 @@
+version: '3'
+services:
+  zbx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zbx
+    ports:
+      - "10050:10050"
+      - "8080:8080"
+    networks:
+      - zbx-nn
+  db:
+    image: mysql:latest
+    container_name: db
+    ports:
+      - '3306:3306'
+    volumes:
+      - 'db:/var/lib/mysql'
+      - './:/var/www'
+    environment:
+      MYSQL_USER: 'zabbix'
+      MYSQL_PASSWORD: 'zabbix'
+      MYSQL_ROOT_PASSWORD: 'zabbix'
+    networks:
+      - zbx-nn
+volumes:
+  db:
+    driver: local
+networks:
+  zbx-nn:
+    driver: bridge
