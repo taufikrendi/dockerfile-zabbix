@@ -2,12 +2,12 @@ FROM ubuntu:22.04
 
 Maintainer Taufik Rendi Anggara <taufik.rendi.anggara@gmail.com>
 
-ARG DB_IP=127.0.0.1
+ARG DB_IP=db
 ARG DB_USERNAME=zabbix
-ARG DB_PASSWORD=password
+ARG DB_PASSWORD=zabbix
 ARG DB_NAME=zabbix
 ARG	PORT=8080
-ARG AGENT_PORT=10050
+ARG AGENT_PORT=10051
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV DB_IP=$DB_IP
@@ -24,21 +24,18 @@ RUN apt -y update
 RUN locale-gen "en_US.UTF-8"
 RUN dpkg-reconfigure locales
 RUN update-locale
-RUN apt install -y zabbix-server-mysql zabbix-frontend-php zabbix-nginx-conf zabbix-sql-scripts zabbix-agent
+RUN apt install -y zabbix-server-mysql zabbix-sql-scripts zabbix-agent zabbix-nginx-conf zabbix-frontend-php
 
-RUN sed -i '2i listen 8080;' /etc/zabbix/nginx.conf
-RUN sed -i '2i server_name 0.0.0.0;' /etc/zabbix/nginx.conf
-RUN sed --in-place '/DBUser=zabbix/d' /etc/zabbix/zabbix_server.conf
-RUN sed --in-place '/DBName=zabbix/d' /etc/zabbix/zabbix_server.conf
-RUN sed -i '1i DBHost='$DB_IP /etc/zabbix/zabbix_server.conf
-RUN sed -i '1i DBUser='$DB_USERNAME /etc/zabbix/zabbix_server.conf
-RUN sed -i '1i DBPassword='$DB_PASSWORD /etc/zabbix/zabbix_server.conf
-RUN sed -i '1i DBUser='$DB_NAME /etc/zabbix/zabbix_server.conf
-
+COPY zabbix-server.conf /etc/zabbix/zabbix-server.conf
 COPY entrypoint.sh /usr/local/bin
+COPY nginx.conf /etc/zabbix/nginx.conf
+COPY zabbix.conf.php /etc/zabbix/web/zabbix.conf.php
+
+RUN service zabbix-server start
+RUN service nginx start
 
 EXPOSE $PORT
 EXPOSE $AGENT_PORT
 
-ENTRYPOINT ["entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]
 CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]

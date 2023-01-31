@@ -1,0 +1,16 @@
+FROM mysql:latest
+
+Maintainer Taufik Rendi Anggara <taufik.rendi.anggara@gmail.com>
+
+ARG MYSQL_ROOT_PASSWORD=zabbix
+ARG MYSQL_USER=zabbix
+ARG MYSQL_PASSWORD=zabbix
+
+ENV MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+ENV MYSQL_USER=$MYSQL_USER
+ENV MYSQL_PASSWORD=$MYSQL_PASSWORD
+
+ADD server.sql.gz /etc/mysql/server.sql.gz
+ADD mysql.sh /var/www/mysql.sh
+
+EXPOSE 3306
